@@ -1,8 +1,4 @@
 # Gunbound Characterdata.dat EDITOR
-
-> A browser-based encrypt/decrypt & editor tool for GunBound `.dat` files.  
-> No server. No upload. Everything runs **100% in your browser**.
-
 ---
 
 ## Features
