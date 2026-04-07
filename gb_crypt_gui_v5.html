@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBCrypt — Gunbound Data Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Consolas:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #1e1e1e;
+    --bg2:      #252526;
+    --bg3:      #2d2d2d;
+    --panel:    #252526;
+    --border:   #3c3c3c;
+    --accent:   #4fc1ff;
+    --accent2:  #ce9178;
+    --accent3:  #4ec9b0;
+    --text:     #d4d4d4;
+    --muted:    #6a9955;
+    --danger:   #f44747;
+    --success:  #4ec9b0;
+    --glow:     rgba(79,193,255,0.08);
+    --glow2:    rgba(206,145,120,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .logo-icon {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+
+  .logo-icon svg { width: 100%; height: 100%; }
+
+  .header-text h1 {
+    font-family: 'Consolas', monospace;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .header-text .sub {
+    font-family: 'Consolas', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-top: 5px;
+  }
+
+  .header-badge {
+    margin-left: auto;
+    font-family: 'Consolas', monospace;
+    font-size: 0.65rem;
+    color: var(--accent2);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    letter-spacing: 0.08em;
+    background: var(--bg3);
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    font-family: 'Consolas', monospace;
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    padding: 10px 20px;
+    cursor: pointer;
+    color: var(--muted);
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-bottom: -1px;
+    transition: color 0.15s, background 0.15s;
+    position: relative;
+    background: transparent;
+  }
+
+  .tab:hover { color: var(--text); background: var(--bg3); }
+
+  .tab.active {
+    color: var(--text);
+    border-color: var(--border);
+    border-bottom-color: var(--panel);
+    background: var(--panel);
+  }
+
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    top: -1px; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .tab.tab-enc.active::after { background: var(--accent2); }
+
+  /* ── PANELS ── */
+  .panel { display: none; animation: fadein 0.3s ease; }
+  .panel.active { display: block; }
+
+  @keyframes fadein { from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+
+  /* ── SECTION CARD ── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .card-title {
+    font-family: 'Consolas', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: '//';
+    color: var(--accent);
+  }
+
+  .card.enc-card .card-title::before { color: var(--accent2); }
+
+  /* ── FORM ── */
+  .field { margin-bottom: 18px; }
+
+  label {
+    display: block;
+    font-family: 'Consolas', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+    font-size: 0.9rem;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: var(--accent);
+  }
+
+  .enc-panel input[type="text"]:focus, .enc-panel input[type="number"]:focus {
+    border-color: var(--accent2);
+  }
+
+  /* File drop zone */
+  .dropzone {
+    border: 1px dashed var(--border);
+    background: var(--bg3);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--accent);
+    background: rgba(79,193,255,0.04);
+  }
+
+  .enc-panel .dropzone:hover, .enc-panel .dropzone.dragover {
+    border-color: var(--accent2);
+    background: rgba(206,145,120,0.04);
+  }
+
+  .dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .dropzone-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+
+  .dropzone-text {
+    font-family: 'Consolas', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .dropzone-filename {
+    margin-top: 8px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    word-break: break-all;
+  }
+
+  .enc-panel .dropzone-filename { color: var(--accent2); }
+
+  /* hint row */
+  .hint {
+    font-family: 'Consolas', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ── BUTTON ── */
+  .btn {
+    font-family: 'Consolas', monospace;
+    font-size: 0.82rem;
+    padding: 8px 20px;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: opacity 0.15s, background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-dec {
+    background: #0e639c;
+    color: #fff;
+  }
+  .btn-dec:hover { background: #1177bb; }
+  .btn-dec:active { background: #0d5a8e; }
+
+  .btn-enc {
+    background: #6f4f28;
+    color: #fff;
+  }
+  .btn-enc:hover { background: #8a6234; }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-wrap {
+    margin-top: 16px;
+    display: none;
+  }
+  .progress-wrap.show { display: block; }
+
+  .progress-bar-bg {
+    height: 3px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.3s ease;
+  }
+
+  .enc-panel .progress-bar-fill { background: var(--accent2); }
+
+  .progress-label {
+    font-family: 'Consolas', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  /* ── OUTPUT LOG ── */
+  .log {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    min-height: 80px;
+    max-height: 180px;
+    overflow-y: auto;
+    margin-top: 14px;
+  }
+
+  .log::-webkit-scrollbar { width: 6px; }
+  .log::-webkit-scrollbar-track { background: var(--bg2); }
+  .log::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .log-line { display: block; }
+  .log-line.info  { color: var(--muted); }
+  .log-line.ok    { color: var(--success); }
+  .log-line.err   { color: var(--danger); }
+  .log-line.data  { color: var(--accent); }
+  .log-line.data2 { color: var(--accent2); }
+  .log-line.warn  { color: #dcdcaa; }
+
+  /* ── DOWNLOAD BUTTON ── */
+  .download-row {
+    margin-top: 14px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+  .download-row.show { display: flex; }
+
+  .btn-dl {
+    font-family: 'Consolas', monospace;
+    font-size: 0.78rem;
+    padding: 7px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--success);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-dl:hover {
+    border-color: var(--success);
+    background: rgba(78,201,176,0.08);
+  }
+
+  .file-info {
+    font-family: 'Consolas', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+
+  .info-box .kv { display: flex; gap: 12px; }
+  .info-box .kv span:first-child { color: var(--accent); min-width: 120px; }
+
+  /* ── ABOUT / ALGO SECTION ── */
+  .algo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .algo-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+  }
+
+  .algo-label {
+    font-family: 'Consolas', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .algo-value {
+    font-family: 'Consolas', monospace;
+    font-size: 0.9rem;
+    color: var(--accent);
+  }
+
+  /* corner decoration */
+  .corner-deco {
+    position: fixed;
+    bottom: 20px;
+    right: 24px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.65rem;
+    color: var(--border);
+    z-index: 2;
+  }
+
+  /* ── FLEX ROW ── */
+  .row { display: flex; gap: 14px; align-items: flex-end; }
+  .row .field { flex: 1; margin-bottom: 0; }
+  .row-end { justify-content: flex-end; margin-top: 6px; }
+
+  /* known length note */
+  .kl-note {
+    font-family: 'Consolas', monospace;
+    font-size: 0.7rem;
+    color: #dcdcaa;
+    margin-top: 5px;
+  }
+
+  /* pulse dot */
+  .pulse {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2s ease-in-out infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  @keyframes pulse {
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.4; }
+  }
+
+  .tab.tab-edit.active::after { background: var(--accent3); }
+
+  .editor-toolbar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .btn-edit {
+    font-family: 'Consolas', monospace;
+    font-size: 0.78rem;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-edit:hover { border-color: var(--accent3); color: var(--accent3); }
+  .btn-edit.primary { background: #0e6655; color: #fff; border-color: #0e6655; }
+  .btn-edit.primary:hover { background: #117a65; }
+  .btn-edit.danger { border-color: var(--danger); color: var(--danger); }
+  .btn-edit.danger:hover { background: rgba(244,71,71,0.08); }
+  .btn-edit:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .editor-status {
+    font-family: 'Consolas', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .editor-status.loaded { color: var(--accent3); }
+
+  .car-select-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .car-select-wrap label {
+    font-family: 'Consolas', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .car-select-wrap select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    outline: none;
+    flex: 1;
+    cursor: pointer;
+  }
+  .car-select-wrap select:focus { border-color: var(--accent3); }
+
+  /* compare select */
+  .cmp-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .cmp-wrap label {
+    font-family: 'Consolas', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .cmp-wrap select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    outline: none;
+    flex: 1;
+    cursor: pointer;
+  }
+
+  /* editor table */
+  .ed-table-wrap {
+    overflow-y: auto;
+    max-height: 520px;
+    border: 1px solid var(--border);
+  }
+  .ed-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Consolas', monospace;
+    font-size: 0.82rem;
+  }
+  .ed-table thead th {
+    background: var(--bg3);
+    color: var(--muted);
+    font-size: 0.68rem;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: left;
+    font-weight: normal;
+  }
+  .ed-table thead th:nth-child(2),
+  .ed-table thead th:nth-child(3),
+  .ed-table thead th:nth-child(4) { text-align: center; }
+
+  .ed-table tbody tr { border-bottom: 1px solid rgba(60,60,60,0.5); transition: background 0.1s; }
+  .ed-table tbody tr:hover { background: rgba(79,193,255,0.04); }
+  .ed-table td { padding: 5px 12px; color: var(--text); }
+  .ed-table td:nth-child(2) { text-align: center; }
+  .ed-table td:nth-child(3) { text-align: center; }
+  .ed-table td:nth-child(4) { text-align: center; color: var(--muted); font-size: 0.75rem; }
+
+  .ed-val-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+    font-size: 0.82rem;
+    width: 80px;
+    text-align: center;
+    padding: 2px 4px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .ed-val-input:focus { border-bottom-color: var(--accent3); color: var(--accent3); }
+  .ed-val-input.modified { color: #dcdcaa; }
+
+  .cmp-higher { color: #4ec9b0; }
+  .cmp-lower  { color: #f44747; }
+  .cmp-equal  { color: var(--muted); }
+
+  .batch-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+  }
+  .batch-bar label { font-family:'Consolas',monospace; font-size:0.72rem; color:var(--muted); white-space:nowrap; }
+  .batch-bar select, .batch-bar input {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family:'Consolas',monospace; font-size:0.82rem;
+    padding: 5px 8px; outline: none;
+  }
+  .batch-bar select { flex: 2; cursor:pointer; }
+  .batch-bar input  { flex: 1; text-align:center; }
+  .batch-bar select:focus, .batch-bar input:focus { border-color: var(--accent3); }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-icon">
+      <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="26,2 50,14 50,38 26,50 2,38 2,14" fill="none" stroke="#4fc1ff" stroke-width="1.5" opacity="0.6"/>
+        <polygon points="26,8 44,18 44,34 26,44 8,34 8,18" fill="none" stroke="#4fc1ff" stroke-width="1" opacity="0.3"/>
+        <circle cx="26" cy="26" r="8" fill="none" stroke="#4fc1ff" stroke-width="1.5"/>
+        <circle cx="26" cy="26" r="3" fill="#4fc1ff"/>
+        <line x1="26" y1="2"  x2="26" y2="18" stroke="#4fc1ff" stroke-width="1" opacity="0.4"/>
+        <line x1="26" y1="34" x2="26" y2="50" stroke="#4fc1ff" stroke-width="1" opacity="0.4"/>
+        <line x1="2"  y1="14" x2="18" y2="22" stroke="#4fc1ff" stroke-width="1" opacity="0.4"/>
+        <line x1="34" y1="30" x2="50" y2="38" stroke="#4fc1ff" stroke-width="1" opacity="0.4"/>
+        <line x1="50" y1="14" x2="34" y2="22" stroke="#4fc1ff" stroke-width="1" opacity="0.4"/>
+        <line x1="18" y1="30" x2="2"  y2="38" stroke="#4fc1ff" stroke-width="1" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>GBCRYPT</h1>
+      <div class="sub">GUNBOUND DATA ENCRYPTOR // LZHUF ENGINE v1.0</div>
+    </div>
+    <div class="header-badge">LZHUF // AH-CODING</div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dec', this)">⬇ DECRYPT</button>
+    <button class="tab tab-enc" onclick="switchTab('enc', this)">⬆ ENCRYPT</button>
+    <button class="tab tab-edit" onclick="switchTab('edit', this)">✎ EDITOR</button>
+    <button class="tab" onclick="switchTab('about', this)">◈ ABOUT</button>
+  </div>
+
+  <!-- DECRYPT PANEL -->
+  <div id="panel-dec" class="panel active">
+    <div class="info-box">
+      <div class="kv"><span>ALGORITHM</span><span>LZHUF (LZ77 + Adaptive Huffman)</span></div>
+      <div class="kv"><span>FILE TARGET</span><span>characterdata.dat / stage.dat</span></div>
+      <div class="kv"><span>MODE</span><span>Encrypted binary → Raw data</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Input File</div>
+      <div class="dropzone" id="dz-dec" ondragover="dzDrag(event,'dz-dec')" ondragleave="dzLeave('dz-dec')" ondrop="dzDrop(event,'dec')">
+        <input type="file" id="file-dec" accept=".dat,*" onchange="fileSelected('dec')">
+        <div class="dropzone-icon">◫</div>
+        <div class="dropzone-text">DROP ENCRYPTED .DAT FILE HERE<br>or click to browse</div>
+        <div class="dropzone-filename" id="fn-dec"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Parameters</div>
+      <div class="field">
+        <label>Known Length (uncompressed size in bytes)</label>
+        <input type="number" id="kl-dec" value="6640" min="1" placeholder="e.g. 6640">
+        <div class="kl-note">⚠ characterdata.dat default = 6640. Adjust for other files.</div>
+      </div>
+      <div class="field">
+        <label>Output Filename</label>
+        <input type="text" id="out-dec" value="characterdata_decrypted.dat" placeholder="output.dat">
+      </div>
+    </div>
+
+    <div style="display:flex; gap:14px; align-items:center;">
+      <button class="btn btn-dec" id="btn-dec" onclick="runDecrypt()" disabled>
+        <span>⬇</span> DECRYPT FILE
+      </button>
+    </div>
+
+    <div class="progress-wrap" id="prog-dec">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="pbar-dec"></div></div>
+      <div class="progress-label" id="plabel-dec">PROCESSING...</div>
+    </div>
+
+    <div class="log" id="log-dec"><span class="log-line info">// Ready. Load an encrypted .dat file to begin.</span></div>
+
+    <div class="download-row" id="dl-dec">
+      <a class="btn-dl" id="dl-link-dec" href="#" download><span>⬇</span> DOWNLOAD OUTPUT</a>
+      <span class="file-info" id="dl-info-dec"></span>
+    </div>
+  </div>
+
+  <!-- ENCRYPT PANEL -->
+  <div id="panel-enc" class="panel enc-panel">
+    <div class="info-box" style="border-left-color:var(--accent2);">
+      <div class="kv"><span style="color:var(--accent2)">ALGORITHM</span><span>LZHUF (LZ77 + Adaptive Huffman)</span></div>
+      <div class="kv"><span style="color:var(--accent2)">FILE TARGET</span><span>characterdata.dat / stage.dat</span></div>
+      <div class="kv"><span style="color:var(--accent2)">MODE</span><span>Raw data → Encrypted binary</span></div>
+    </div>
+
+    <div class="card enc-card">
+      <div class="card-title">Input File</div>
+      <div class="dropzone" id="dz-enc" ondragover="dzDrag(event,'dz-enc')" ondragleave="dzLeave('dz-enc')" ondrop="dzDrop(event,'enc')">
+        <input type="file" id="file-enc" accept=".dat,*" onchange="fileSelected('enc')">
+        <div class="dropzone-icon">◫</div>
+        <div class="dropzone-text">DROP DECRYPTED .DAT FILE HERE<br>or click to browse</div>
+        <div class="dropzone-filename" id="fn-enc"></div>
+      </div>
+    </div>
+
+    <div class="card enc-card">
+      <div class="card-title">Parameters</div>
+      <div class="field">
+        <label>Output Filename</label>
+        <input type="text" id="out-enc" value="characterdata_encrypted.dat" placeholder="output.dat">
+      </div>
+    </div>
+
+    <button class="btn btn-enc" id="btn-enc" onclick="runEncrypt()" disabled>
+      <span>⬆</span> ENCRYPT FILE
+    </button>
+
+    <div class="progress-wrap" id="prog-enc">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="pbar-enc"></div></div>
+      <div class="progress-label" id="plabel-enc">PROCESSING...</div>
+    </div>
+
+    <div class="log" id="log-enc"><span class="log-line info">// Ready. Load a decrypted .dat file to begin.</span></div>
+
+    <div class="download-row" id="dl-enc">
+      <a class="btn-dl" id="dl-link-enc" href="#" download style="color:var(--accent2);border-color:var(--accent2)"><span>⬆</span> DOWNLOAD OUTPUT</a>
+      <span class="file-info" id="dl-info-enc"></span>
+    </div>
+  </div>
+
+  <!-- ABOUT PANEL -->
+  <div id="panel-about" class="panel">
+    <div class="card">
+      <div class="card-title">Algorithm Details</div>
+      <div class="algo-grid">
+        <div class="algo-item">
+          <div class="algo-label">Compression</div>
+          <div class="algo-value">LZHUF</div>
+        </div>
+        <div class="algo-item">
+          <div class="algo-label">Variant</div>
+          <div class="algo-value" style="font-size:0.7rem">LZ77 + AH-CODING</div>
+        </div>
+        <div class="algo-item">
+          <div class="algo-label">Buffer Size (N)</div>
+          <div class="algo-value">4096</div>
+        </div>
+        <div class="algo-item">
+          <div class="algo-label">Lookahead (F)</div>
+          <div class="algo-value">60</div>
+        </div>
+        <div class="algo-item">
+          <div class="algo-label">Threshold</div>
+          <div class="algo-value">2</div>
+        </div>
+        <div class="algo-item">
+          <div class="algo-label">Author</div>
+          <div class="algo-value" style="font-size:0.65rem;color:var(--text)">H. Yoshizaki 1988</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">File Format</div>
+      <div class="info-box" style="margin-bottom:0;border:none;padding:0;background:none">
+        <div class="kv"><span>ENCRYPTED</span><span>Raw LZHUF bitstream (no header)</span></div>
+        <div class="kv"><span>TRAILING BYTE</span><span>iXFS checksum = (0x4D + Σ plain bytes) &amp; 0xFF</span></div>
+        <div class="kv"><span>SIZE HEADER</span><span>4 bytes LE uint32 (prepended on decode)</span></div>
+        <div class="kv"><span>CHAR DATA</span><span>Known length = 6640 bytes</span></div>
+        <div class="kv"><span>STAGE DATA</span><span>Known length = 39936 bytes</span></div>
+        <div class="kv"><span>SOURCE</span><span>GunboundStageEditorS2 / iXFS</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Usage Notes</div>
+      <div style="font-family:'Consolas',monospace;font-size:0.8rem;line-height:2;color:var(--muted)">
+        <span style="color:var(--accent)">&gt;</span> This tool runs entirely in-browser. No data is uploaded.<br>
+        <span style="color:var(--accent)">&gt;</span> For decrypt: you must know the original uncompressed size.<br>
+        <span style="color:var(--accent)">&gt;</span> characterdata.dat default known_length = <span style="color:var(--accent)">6640</span><br>
+        <span style="color:var(--accent)">&gt;</span> stage.dat default known_length = <span style="color:var(--accent)">39936</span><br>
+        <span style="color:var(--accent)">&gt;</span> Trailing byte is iXFS checksum (0x4D + Σ plain) &amp; 0xFF — auto-computed.<br>
+        <span style="color:var(--accent)">&gt;</span> Roundtrip produces byte-for-byte identical files.
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITOR PANEL -->
+  <div id="panel-edit" class="panel">
+
+    <!-- Toolbar -->
+    <div class="editor-toolbar">
+      <button class="btn-edit" id="ed-btn-open-plain" onclick="edOpenPlain()">📂 Open Decrypted</button>
+      <button class="btn-edit" id="ed-btn-open-enc" onclick="edOpenEncrypted()">🔓 Open Encrypted</button>
+      <button class="btn-edit" id="ed-btn-compare" onclick="edOpenCompare()" disabled>⇄ Compare</button>
+      <button class="btn-edit" id="ed-btn-clear-cmp" onclick="edClearCompare()" disabled>✕ Clear Cmp</button>
+      <button class="btn-edit primary" id="ed-btn-save" onclick="edSave()" disabled>💾 Save Decrypted</button>
+      <button class="btn-edit primary" id="ed-btn-save-enc" onclick="edSaveEncrypted()" disabled>🔒 Save &amp; Encrypt</button>
+      <span class="editor-status" id="ed-status">// No file loaded</span>
+    </div>
+
+    <!-- hidden file inputs -->
+    <input type="file" id="ed-file-plain"   accept=".dat,*" style="display:none" onchange="edHandlePlain(this)">
+    <input type="file" id="ed-file-enc-in"  accept=".dat,*" style="display:none" onchange="edHandleEncrypted(this)">
+    <input type="file" id="ed-file-compare" accept=".dat,*" style="display:none" onchange="edHandleCompare(this)">
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Character Select</div>
+      <div class="car-select-wrap">
+        <label>MOBILE</label>
+        <select id="ed-car-select" onchange="edRenderTable()" disabled>
+          <option value="0">Armour</option>
+          <option value="1">Mage</option>
+          <option value="2">Nak</option>
+          <option value="3">Trico</option>
+          <option value="4">Bigfoot</option>
+          <option value="5">Bommer</option>
+          <option value="6">Raon</option>
+          <option value="7">Lighting</option>
+          <option value="8">JD</option>
+          <option value="9">A.Sate</option>
+          <option value="10">ICE</option>
+          <option value="11">Turtle</option>
+          <option value="12">Grub</option>
+          <option value="13">Aduka</option>
+          <option value="14">J.Frog</option>
+          <option value="15">Kalsiddon</option>
+          <option value="16">Dragon/Kalsiddon</option>
+          <option value="17">Knight</option>
+          <option value="18">Phoenix</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;border:none;background:none">
+      <div class="ed-table-wrap">
+        <table class="ed-table">
+          <thead>
+            <tr>
+              <th style="width:200px">Attribute</th>
+              <th style="width:120px">Value</th>
+              <th style="width:160px">vs Compare</th>
+              <th style="width:100px">Offset</th>
+            </tr>
+          </thead>
+          <tbody id="ed-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Batch edit bar -->
+    <div class="batch-bar">
+      <label>BATCH ±</label>
+      <select id="ed-batch-attr">
+        <option value="">— Select Attribute —</option>
+      </select>
+      <input type="number" id="ed-batch-delta" placeholder="±value" style="width:90px">
+      <button class="btn-edit" onclick="edBatchApply()">Apply All Cars</button>
+    </div>
+
+    <div class="log" id="log-edit" style="margin-top:12px"><span class="log-line info">// Open a .dat file to start editing.</span></div>
+  </div>
+
+</div>
+
+<div class="corner-deco"><span class="pulse"></span>ALL PROCESSING LOCAL // NO UPLOAD</div>
+
+<script>
+// ────────────────────────────────────
+// LZHUF IMPLEMENTATION (from gb_crypt_tool.py)
+// ────────────────────────────────────
+const N=4096,F=60,THRESHOLD=2,NIL=N,N_CHAR=256-THRESHOLD+F,T=N_CHAR*2-1,R=T-1,MAX_FREQ=0x8000;
+
+const p_len=[3,4,4,4,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8];
+const p_code=[0x00,0x20,0x30,0x40,0x50,0x58,0x60,0x68,0x70,0x78,0x80,0x88,0x90,0x94,0x98,0x9C,0xA0,0xA4,0xA8,0xAC,0xB0,0xB4,0xB8,0xBC,0xC0,0xC2,0xC4,0xC6,0xC8,0xCA,0xCC,0xCE,0xD0,0xD2,0xD4,0xD6,0xD8,0xDA,0xDC,0xDE,0xE0,0xE2,0xE4,0xE6,0xE8,0xEA,0xEC,0xEE,0xF0,0xF1,0xF2,0xF3,0xF4,0xF5,0xF6,0xF7,0xF8,0xF9,0xFA,0xFB,0xFC,0xFD,0xFE,0xFF];
+const d_code=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,25,25,26,26,27,27,28,28,29,29,30,30,31,31,32,32,33,33,34,34,35,35,36,36,37,37,38,38,39,39,40,40,41,41,42,42,43,43,44,44,45,45,46,46,47,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63];
+const d_len=[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8];
+
+function makeHuffState() {
+  const freq=new Uint32Array(T+2);
+  const prnt=new Int32Array(T+N_CHAR);
+  const son=new Int32Array(T);
+  for(let i=0;i<N_CHAR;i++){freq[i]=1;son[i]=i+T;prnt[i+T]=i;}
+  let i=0,j=N_CHAR;
+  while(j<=R){freq[j]=freq[i]+freq[i+1];son[j]=i;prnt[i]=prnt[i+1]=j;i+=2;j++;}
+  freq[T]=0xffff;prnt[R]=0;
+  return{freq,prnt,son};
+}
+
+function reconst(h){
+  const{freq,prnt,son}=h;
+  let j=0;
+  for(let i=0;i<T;i++){if(son[i]>=T){freq[j]=(freq[i]+1)>>1;son[j]=son[i];j++;}}
+  let i=0;j=N_CHAR;
+  while(j<T){
+    let k=i+1,f=freq[i]+freq[k];freq[j]=f;k=j-1;
+    while(f<freq[k])k--;
+    k++;let l=(j-k)*2;
+    freq.copyWithin(k+1,k,k+l);freq[k]=f;
+    son.copyWithin(k+1,k,k+l);son[k]=i;
+    i+=2;j++;
+  }
+  for(let i=0;i<T;i++){const k=son[i];if(k>=T)prnt[k]=i;else prnt[k]=prnt[k+1]=i;}
+}
+
+function update(h,c){
+  const{freq,prnt,son}=h;
+  if(freq[R]===MAX_FREQ)reconst(h);
+  c=prnt[c+T];
+  do{
+    let k=++freq[c];const l=c+1;
+    if(k>freq[l]){
+      let ll=l;while(k>freq[ll+1])ll++;
+      freq[c]=freq[ll];freq[ll]=k;
+      const i=son[c];prnt[i]=ll;if(i<T)prnt[i+1]=ll;
+      const jj=son[ll];son[ll]=i;prnt[jj]=c;if(jj<T)prnt[jj+1]=c;
+      son[c]=jj;c=ll;
+    }
+    c=prnt[c];
+  }while(c!==0);
+}
+
+// ── DECOMPRESS ──
+function decompress(srcArr, knownLen) {
+  // Strip trailing iXFS checksum byte (last byte = (0x4D + sum(plain)) & 0xFF)
+  const lzhufData = srcArr.slice(0, srcArr.length - 1);
+  // Prepend known_length as 4-byte LE
+  const full = new Uint8Array(4 + lzhufData.length);
+  full[0]=knownLen&0xff;full[1]=(knownLen>>8)&0xff;full[2]=(knownLen>>16)&0xff;full[3]=(knownLen>>24)&0xff;
+  full.set(lzhufData, 4);
+
+  let pos=0;
+  const gc=()=>(pos<full.length?full[pos++]:-1);
+
+  const ts=full[0]|(full[1]<<8)|(full[2]<<16)|(full[3]<<24); pos=4;
+  const out=new Uint8Array(ts);
+  let outPos=0;
+
+  const DB=new Uint8Array(N+F-1);
+  const h=makeHuffState();
+  const{freq,prnt,son}=h;
+
+  let getbuf=0,getlen=0;
+  const GetBit=()=>{
+    while(getlen<=8){let i=gc();if(i<0)i=0;getbuf=((getbuf|(i<<(8-getlen)))&0xffff);getlen+=8;}
+    const i=getbuf;getbuf=(getbuf<<1)&0xffff;getlen--;return(i&0x8000)>>15;
+  };
+  const GetByte=()=>{
+    while(getlen<=8){let i=gc();if(i<0)i=0;getbuf=((getbuf|(i<<(8-getlen)))&0xffff);getlen+=8;}
+    const i=getbuf;getbuf=(getbuf<<8)&0xffff;getlen-=8;return(i&0xff00)>>8;
+  };
+  const DecodeChar=()=>{
+    let c=son[R];while(c<T){c+=GetBit();c=son[c];}c-=T;update(h,c);return c;
+  };
+  const DecodePosition=()=>{
+    let i=GetByte(),c=d_code[i]<<6,j=d_len[i]-2;
+    while(j-->0)i=(i<<1)+GetBit();return c|(i&0x3f);
+  };
+
+  for(let i=0;i<N-F;i++)DB[i]=0x20;
+  let r=N-F,count=0;
+  while(count<ts){
+    let c=DecodeChar();
+    if(c<256){out[outPos++]=c;DB[r]=c;r=(r+1)&(N-1);count++;}
+    else{
+      const ii=(r-DecodePosition()-1)&(N-1),j=c-255+THRESHOLD;
+      for(let k=0;k<j;k++){c=DB[(ii+k)&(N-1)];out[outPos++]=c;DB[r]=c;r=(r+1)&(N-1);count++;}
+    }
+  }
+  return out;
+}
+
+// ── COMPRESS ──
+function compress(srcArr) {
+  const data=srcArr;
+  const ts=data.length;
+  let inpos=0;
+  const gc=()=>(inpos<data.length?data[inpos++]:-1);
+  const outArr=[];
+  // write size header
+  outArr.push(ts&0xff,(ts>>8)&0xff,(ts>>16)&0xff,(ts>>24)&0xff);
+
+  const DB=new Uint8Array(N+F-1);
+  const ls=new Int32Array(N+1),rs=new Int32Array(N+257),dad=new Int32Array(N+1);
+  const h=makeHuffState();
+  const{prnt,son}=h;
+  let mp=0,ml=0,pb=0,pl=0;
+
+  const pc=v=>outArr.push(v&0xff);
+  function Putcode(l,c){
+    pb=(pb|(c>>pl))>>>0;pl+=l;
+    if(pl>=8){pc((pb>>8)&0xff);pl-=8;if(pl>=8){pc(pb&0xff);pl-=8;pb=(c<<(l-pl))>>>0;}else pb=(pb<<8)>>>0;}
+  }
+  function InitTree(){for(let i=N+1;i<=N+256;i++)rs[i]=NIL;for(let i=0;i<N;i++)dad[i]=NIL;}
+  function InsertNode(r){
+    let cmp=1,p=N+1+DB[r];rs[r]=ls[r]=NIL;ml=0;
+    outer:while(true){
+      if(cmp>=0){if(rs[p]!==NIL)p=rs[p];else{rs[p]=r;dad[r]=p;return;}}
+      else{if(ls[p]!==NIL)p=ls[p];else{ls[p]=r;dad[r]=p;return;}}
+      let i=1;cmp=0;
+      while(i<F){cmp=DB[r+i]-DB[p+i];if(cmp!==0)break;i++;}
+      if(i>THRESHOLD){
+        if(i>ml){mp=((r-p)&(N-1))-1;ml=i;if(ml>=F)break outer;}
+        if(i===ml){const cc=((r-p)&(N-1))-1;if(cc<mp)mp=cc;}
+      }
+    }
+    dad[r]=dad[p];ls[r]=ls[p];rs[r]=rs[p];
+    dad[ls[p]]=r;dad[rs[p]]=r;
+    if(rs[dad[p]]===p)rs[dad[p]]=r;else ls[dad[p]]=r;
+    dad[p]=NIL;
+  }
+  function DeleteNode(p){
+    if(dad[p]===NIL)return;
+    let q;
+    if(rs[p]===NIL)q=ls[p];
+    else if(ls[p]===NIL)q=rs[p];
+    else{
+      q=ls[p];
+      if(rs[q]!==NIL){while(rs[q]!==NIL)q=rs[q];rs[dad[q]]=ls[q];dad[ls[q]]=dad[q];ls[q]=ls[p];dad[ls[p]]=q;}
+      rs[q]=rs[p];dad[rs[p]]=q;
+    }
+    dad[q]=dad[p];
+    if(rs[dad[p]]===p)rs[dad[p]]=q;else ls[dad[p]]=q;
+    dad[p]=NIL;
+  }
+  function EncodeChar(c){
+    let i=0,j=0,k=prnt[c+T];
+    while(true){i>>=1;if(k&1)i+=0x8000;j++;k=prnt[k];if(k===R)break;}
+    Putcode(j,i);update(h,c);
+  }
+  function EncodePos(c){const i=c>>6;Putcode(p_len[i],p_code[i]<<8);Putcode(6,(c&0x3f)<<10);}
+
+  if(ts===0){if(pl>0)pc((pb>>8)&0xff);
+    // append iXFS checksum: (0x4D + sum(plain)) & 0xFF
+    let ck=0x4D;for(let i=0;i<data.length;i++)ck=(ck+data[i])&0xFF;
+    outArr.push(ck);
+    return new Uint8Array(outArr.slice(4));}
+  InitTree();
+  let s=0,r=N-F;
+  for(let i=s;i<r;i++)DB[i]=0x20;
+  let ln=0;
+  while(ln<F){const c=gc();if(c<0)break;DB[r+ln]=c;ln++;}
+  for(let i=1;i<=F;i++)InsertNode(r-i);
+  InsertNode(r);
+  while(ln>0){
+    if(ml>ln)ml=ln;
+    if(ml<=THRESHOLD){ml=1;EncodeChar(DB[r]);}
+    else{EncodeChar(255-THRESHOLD+ml);EncodePos(mp);}
+    const lml=ml;let i=0;
+    while(i<lml){const c=gc();if(c<0)break;DeleteNode(s);DB[s]=c;if(s<F-1)DB[s+N]=c;s=(s+1)&(N-1);r=(r+1)&(N-1);InsertNode(r);i++;}
+    while(i<lml){DeleteNode(s);s=(s+1)&(N-1);r=(r+1)&(N-1);ln--;if(ln)InsertNode(r);i++;}
+  }
+  if(pl>0)pc((pb>>8)&0xff);
+  // append iXFS checksum byte: (0x4D + sum(all plain bytes)) & 0xFF
+  let ck=0x4D;for(let i=0;i<data.length;i++)ck=(ck+data[i])&0xFF;
+  outArr.push(ck);
+  return new Uint8Array(outArr.slice(4)); // strip size header
+}
+
+// ────────────────────────────────────
+// UI LOGIC
+// ────────────────────────────────────
+const state = { dec: null, enc: null };
+
+function switchTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+function dzDrag(e, id) { e.preventDefault(); document.getElementById(id).classList.add('dragover'); }
+function dzLeave(id) { document.getElementById(id).classList.remove('dragover'); }
+function dzDrop(e, mode) {
+  e.preventDefault();
+  dzLeave('dz-'+mode);
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  loadFile(mode, file);
+}
+
+function fileSelected(mode) {
+  const input = document.getElementById('file-'+mode);
+  if (input.files[0]) loadFile(mode, input.files[0]);
+}
+
+function loadFile(mode, file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    state[mode] = new Uint8Array(e.target.result);
+    document.getElementById('fn-'+mode).textContent = `📄 ${file.name}  (${fmtBytes(file.size)})`;
+    document.getElementById('btn-'+mode).disabled = false;
+    log(mode, `info`, `Loaded: ${file.name} — ${fmtBytes(file.size)}`);
+    if (mode === 'dec') document.getElementById('out-dec').value = file.name.replace(/\.dat$/i,'')+'_decrypted.dat';
+    if (mode === 'enc') document.getElementById('out-enc').value = file.name.replace(/\.dat$/i,'')+'_encrypted.dat';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function fmtBytes(n) {
+  if (n < 1024) return n+' B';
+  if (n < 1048576) return (n/1024).toFixed(1)+' KB';
+  return (n/1048576).toFixed(2)+' MB';
+}
+
+function log(mode, cls, msg) {
+  const el = document.getElementById('log-'+mode);
+  const line = document.createElement('span');
+  line.className = 'log-line '+cls;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(document.createElement('br'));
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function setProgress(mode, pct, label) {
+  const wrap = document.getElementById('prog-'+mode);
+  wrap.classList.add('show');
+  document.getElementById('pbar-'+mode).style.width = pct+'%';
+  document.getElementById('plabel-'+mode).textContent = label;
+}
+
+function runDecrypt() {
+  const data = state.dec;
+  if (!data) return;
+  const kl = parseInt(document.getElementById('kl-dec').value);
+  if (!kl || kl <= 0) { log('dec','err','Invalid known_length value'); return; }
+  const outName = document.getElementById('out-dec').value || 'output_decrypted.dat';
+
+  document.getElementById('btn-dec').disabled = true;
+  document.getElementById('dl-dec').classList.remove('show');
+  log('dec','info',`Starting decrypt... input=${fmtBytes(data.length)}, known_length=${kl}`);
+  setProgress('dec', 30, 'INITIALIZING LZHUF DECODER...');
+
+  setTimeout(() => {
+    try {
+      setProgress('dec', 60, 'DECODING HUFFMAN STREAM...');
+      setTimeout(() => {
+        try {
+          const result = decompress(data, kl);
+          setProgress('dec', 100, 'COMPLETE');
+          log('dec','ok',`✓ Decrypt successful! Output: ${fmtBytes(result.length)}`);
+          log('dec','data',`Output size: ${result.length} bytes (known_length was ${kl})`);
+          const foundCk = data[data.length-1];
+          const calcCk = (result.reduce((a,b)=>a+b,0x4D)) & 0xFF;
+          const ckOk = foundCk === calcCk;
+          log('dec', ckOk?'ok':'warn', `iXFS checksum: found=0x${foundCk.toString(16).toUpperCase().padStart(2,'0')} calc=0x${calcCk.toString(16).toUpperCase().padStart(2,'0')} ${ckOk?'✓ valid':'⚠ mismatch'}`);
+          if (result.length !== kl) log('dec','warn',`⚠ Output size differs from known_length — check the value`);
+
+          const blob = new Blob([result], {type:'application/octet-stream'});
+          const url = URL.createObjectURL(blob);
+          const link = document.getElementById('dl-link-dec');
+          link.href = url;
+          link.download = outName;
+          document.getElementById('dl-info-dec').textContent = `${outName}  •  ${fmtBytes(result.length)}`;
+          document.getElementById('dl-dec').classList.add('show');
+          document.getElementById('btn-dec').disabled = false;
+        } catch(e) {
+          setProgress('dec', 0, 'ERROR');
+          log('dec','err','Decrypt failed: '+e.message);
+          document.getElementById('btn-dec').disabled = false;
+        }
+      }, 200);
+    } catch(e) {
+      log('dec','err','Error: '+e.message);
+      document.getElementById('btn-dec').disabled = false;
+    }
+  }, 100);
+}
+
+function runEncrypt() {
+  const data = state.enc;
+  if (!data) return;
+  const outName = document.getElementById('out-enc').value || 'output_encrypted.dat';
+
+  document.getElementById('btn-enc').disabled = true;
+  document.getElementById('dl-enc').classList.remove('show');
+  log('enc','info',`Starting encrypt... input=${fmtBytes(data.length)}`);
+  setProgress('enc', 30, 'INITIALIZING LZHUF ENCODER...');
+
+  setTimeout(() => {
+    setProgress('enc', 65, 'COMPRESSING WITH LZ77 + HUFFMAN...');
+    setTimeout(() => {
+      try {
+        const result = compress(data);
+        setProgress('enc', 100, 'COMPLETE');
+        log('enc','ok',`✓ Encrypt successful!`);
+        log('enc','data2',`Input: ${fmtBytes(data.length)}  →  Output: ${fmtBytes(result.length)}`);
+        const ratio = (result.length/data.length*100).toFixed(1);
+        log('enc','info',`Compression ratio: ${ratio}%`);
+        const ck = (data.reduce((a,b)=>a+b,0x4D)) & 0xFF;
+        log('enc','info',`iXFS checksum appended: 0x${ck.toString(16).padStart(2,'0').toUpperCase()}`);
+
+        const blob = new Blob([result], {type:'application/octet-stream'});
+        const url = URL.createObjectURL(blob);
+        const link = document.getElementById('dl-link-enc');
+        link.href = url;
+        link.download = outName;
+        document.getElementById('dl-info-enc').textContent = `${outName}  •  ${fmtBytes(result.length)}`;
+        document.getElementById('dl-enc').classList.add('show');
+        document.getElementById('btn-enc').disabled = false;
+      } catch(e) {
+        setProgress('enc', 0, 'ERROR');
+        log('enc','err','Encrypt failed: '+e.message);
+        document.getElementById('btn-enc').disabled = false;
+      }
+    }, 300);
+  }, 100);
+}
+
+// ────────────────────────────────────
+// CHARACTERDATA EDITOR
+// ────────────────────────────────────
+const ED = {
+  plainData: null,       // Uint8Array — current working plain bytes
+  cmpData:   null,       // Uint8Array — compare plain bytes
+  carData:   [],         // [{attr: value, ...}, ...] x19 cars
+  cmpCarData:[],
+  modified:  new Set(),  // set of "carIdx_attr" that were changed
+  srcFileName: '',
+};
+
+const CAR_NAMES = [
+  'Armour','Mage','Nak','Trico','Bigfoot','Bommer','Raon','Lighting',
+  'JD','A.Sate','ICE','Turtle','Grub','Aduka','J.Frog',
+  'Kalsiddon','Dragon/Kalsiddon','Knight','Phoenix'
+];
+
+const ATTRS = [
+  ['Height Angle',       -0x50, 2],
+  ['WP1 Angle Max',      -0x48, 2], ['WP1 Angle Min',      -0x44, 2],
+  ['WP1 True Angle Max', -0x40, 2], ['WP1 True Angle Min', -0x3C, 2],
+  ['WP2 Angle Max',      -0x30, 2], ['WP2 Angle Min',      -0x2C, 2],
+  ['WP2 True Angle Max', -0x28, 2], ['WP2 True Angle Min', -0x24, 2],
+  ['SS Angle Max',       -0x18, 2], ['SS Angle Min',        -0x14, 2],
+  ['SS True Angle Max',  -0x10, 2], ['SS True Angle Min',   -0x0C, 2],
+  ['Defense',    0x00, 2], ['Life',      0x04, 2], ['Shield',      0x08, 2],
+  ['Shield Regen',0x0C, 2], ['Soil Gravity',0x10,2],['Jarak Jalan', 0x14, 2],
+  ['Projectile Velocity',0x18,2], ['Delay Base',0x1C,2], ['Delay Interval',0x20,2],
+  ['Delay WP1',  0x24, 2], ['Delay WP2',  0x28, 2], ['Delay SS',   0x2C, 2],
+  ['Delay F8',   0x34, 2],
+  ['DMG WP1_1',  0x5C, 2], ['DMG WP1_2',  0x60, 2], ['DMG WP1_3',  0x64, 2],
+  ['Bunge WP1_1',0x68, 2], ['Bunge WP1_2',0x6C, 2], ['Bunge WP1_3',0x70, 2],
+  ['DMG WP2_1',  0x90, 2], ['DMG WP2_2',  0x94, 2], ['DMG WP2_3',  0x98, 2],
+  ['Bunge WP2_1',0x9C, 2], ['Bunge WP2_2',0xA0, 2], ['Bunge WP2_3',0xA4, 2],
+  ['DMG SS_1',   0xC4, 2], ['DMG SS_2',   0xC8, 2], ['DMG SS_3',   0xCC, 2],
+  ['Bunge SS_1', 0xD0, 2], ['Bunge SS_2', 0xD4, 2], ['Bunge SS_3', 0xD8, 2],
+];
+
+// base offsets per car (same logic as Python)
+const BASE_DEFENSE_ICE = 0xD4C;
+const OFFSET_STEP = 0x14C;
+function edCarOffset(carIdx) {
+  return BASE_DEFENSE_ICE - (11 - (carIdx + 1)) * OFFSET_STEP;
+}
+function edAttrOffset(carIdx, relOffset) {
+  return edCarOffset(carIdx) + relOffset;
+}
+
+function edReadU16LE(buf, off) {
+  return buf[off] | (buf[off+1] << 8);
+}
+function edWriteU16LE(buf, off, val) {
+  buf[off]   = val & 0xFF;
+  buf[off+1] = (val >> 8) & 0xFF;
+}
+
+function edParseData(bytes) {
+  const cars = [];
+  for (let i = 0; i < 19; i++) {
+    const car = {};
+    for (const [attr, rel] of ATTRS) {
+      const off = edAttrOffset(i, rel);
+      if (off + 2 > bytes.length) throw new Error(`Offset overflow: ${CAR_NAMES[i]} - ${attr} @ 0x${off.toString(16)}`);
+      car[attr] = edReadU16LE(bytes, off);
+    }
+    cars.push(car);
+  }
+  return cars;
+}
+
+function edApplyToBytes(bytes, cars) {
+  const out = new Uint8Array(bytes);
+  for (let i = 0; i < 19; i++) {
+    for (const [attr, rel] of ATTRS) {
+      const off = edAttrOffset(i, rel);
+      edWriteU16LE(out, off, cars[i][attr]);
+    }
+  }
+  return out;
+}
+
+function edLog(cls, msg) {
+  const el = document.getElementById('log-edit');
+  const line = document.createElement('span');
+  line.className = 'log-line ' + cls;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(document.createElement('br'));
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function edSetStatus(msg, loaded) {
+  const el = document.getElementById('ed-status');
+  el.textContent = msg;
+  el.className = 'editor-status' + (loaded ? ' loaded' : '');
+}
+
+function edSetEnabled(loaded) {
+  ['ed-btn-compare','ed-btn-save','ed-btn-save-enc'].forEach(id => {
+    document.getElementById(id).disabled = !loaded;
+  });
+  document.getElementById('ed-car-select').disabled = !loaded;
+}
+
+// ── Open plain ──
+function edOpenPlain() { document.getElementById('ed-file-plain').click(); }
+function edHandlePlain(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      ED.plainData = new Uint8Array(e.target.result);
+      ED.carData   = edParseData(ED.plainData);
+      ED.modified.clear();
+      ED.srcFileName = file.name;
+      edSetEnabled(true);
+      edSetStatus(`// ${file.name}  (${fmtBytes(ED.plainData.length)})`, true);
+      edLog('ok', `✓ Loaded plain: ${file.name} — ${fmtBytes(ED.plainData.length)}`);
+      edPopulateBatch();
+      edRenderTable();
+      document.getElementById('ed-car-select').value = '0';
+    } catch(err) { edLog('err', 'Parse error: ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+// ── Open encrypted ──
+function edOpenEncrypted() { document.getElementById('ed-file-enc-in').click(); }
+function edHandleEncrypted(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const raw = new Uint8Array(e.target.result);
+      const kl = 6640; // characterdata known length
+      edLog('info', `Decrypting ${file.name}...`);
+      const plain = decompress(raw, kl);
+      ED.plainData = plain;
+      ED.carData   = edParseData(plain);
+      ED.modified.clear();
+      ED.srcFileName = file.name.replace(/\.dat$/i, '_decrypted.dat');
+      edSetEnabled(true);
+      edSetStatus(`// ${file.name} (decrypted)  ${fmtBytes(plain.length)}`, true);
+      edLog('ok', `✓ Decrypted: ${file.name} → ${fmtBytes(plain.length)} bytes`);
+      edPopulateBatch();
+      edRenderTable();
+      document.getElementById('ed-car-select').value = '0';
+    } catch(err) { edLog('err', 'Decrypt/parse error: ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+// ── Compare ──
+function edOpenCompare() { document.getElementById('ed-file-compare').click(); }
+function edHandleCompare(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      let bytes = new Uint8Array(e.target.result);
+      // auto-detect encrypted vs plain by size
+      if (bytes.length < 2000) {
+        // likely encrypted, decrypt first
+        bytes = decompress(bytes, 6640);
+        edLog('info', `Compare file auto-decrypted`);
+      }
+      ED.cmpData    = bytes;
+      ED.cmpCarData = edParseData(bytes);
+      document.getElementById('ed-btn-clear-cmp').disabled = false;
+      edLog('ok', `✓ Compare loaded: ${file.name}`);
+      edRenderTable();
+    } catch(err) { edLog('err', 'Compare error: ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+function edClearCompare() {
+  ED.cmpData = null; ED.cmpCarData = [];
+  document.getElementById('ed-btn-clear-cmp').disabled = true;
+  edLog('info', 'Compare cleared');
+  edRenderTable();
+}
+
+// ── Render table ──
+function edRenderTable() {
+  const tbody = document.getElementById('ed-tbody');
+  tbody.innerHTML = '';
+  if (!ED.carData.length) return;
+
+  const idx = parseInt(document.getElementById('ed-car-select').value);
+  const car = ED.carData[idx];
+  const cmp = ED.cmpCarData[idx] || null;
+
+  for (const [attr, rel] of ATTRS) {
+    const val  = car[attr];
+    const off  = edAttrOffset(idx, rel);
+    const mkey = `${idx}_${attr}`;
+    const isModified = ED.modified.has(mkey);
+
+    // compare cell
+    let cmpCell = '—';
+    if (cmp !== null) {
+      const cv = cmp[attr];
+      const diff = val - cv;
+      if (diff > 0)      cmpCell = `<span class="cmp-higher">${val} ↑ ${cv} (+${diff})</span>`;
+      else if (diff < 0) cmpCell = `<span class="cmp-lower">${val} ↓ ${cv} (${diff})</span>`;
+      else               cmpCell = `<span class="cmp-equal">${val} = ${cv}</span>`;
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${attr}</td>
+      <td><input class="ed-val-input${isModified?' modified':''}" 
+           data-car="${idx}" data-attr="${attr}"
+           type="number" min="0" max="65535" value="${val}"></td>
+      <td>${cmpCell}</td>
+      <td>0x${off.toString(16).toUpperCase().padStart(4,'0')}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  // bind input events
+  tbody.querySelectorAll('.ed-val-input').forEach(inp => {
+    inp.addEventListener('change', edHandleInput);
+    inp.addEventListener('blur', edHandleInput);
+  });
+}
+
+function edHandleInput(e) {
+  const inp = e.target;
+  let val = parseInt(inp.value);
+  if (isNaN(val) || val < 0 || val > 65535) {
+    edLog('err', `Invalid value — must be 0–65535`);
+    const idx = parseInt(inp.dataset.car);
+    inp.value = ED.carData[idx][inp.dataset.attr];
+    return;
+  }
+  const idx  = parseInt(inp.dataset.car);
+  const attr = inp.dataset.attr;
+  ED.carData[idx][attr] = val;
+  const mkey = `${idx}_${attr}`;
+  ED.modified.add(mkey);
+  inp.classList.add('modified');
+  // update compare cell in same row
+  const cmp = ED.cmpCarData[idx] || null;
+  if (cmp) {
+    const cv = cmp[attr];
+    const diff = val - cv;
+    const td = inp.closest('tr').children[2];
+    if (diff > 0)      td.innerHTML = `<span class="cmp-higher">${val} ↑ ${cv} (+${diff})</span>`;
+    else if (diff < 0) td.innerHTML = `<span class="cmp-lower">${val} ↓ ${cv} (${diff})</span>`;
+    else               td.innerHTML = `<span class="cmp-equal">${val} = ${cv}</span>`;
+  }
+}
+
+// ── Batch edit ──
+function edPopulateBatch() {
+  const sel = document.getElementById('ed-batch-attr');
+  sel.innerHTML = '<option value="">— Select Attribute —</option>';
+  for (const [attr] of ATTRS) {
+    const opt = document.createElement('option');
+    opt.value = attr; opt.textContent = attr;
+    sel.appendChild(opt);
+  }
+}
+
+function edBatchApply() {
+  if (!ED.carData.length) return;
+  const attr  = document.getElementById('ed-batch-attr').value;
+  const delta = parseInt(document.getElementById('ed-batch-delta').value);
+  if (!attr) { edLog('err', 'Select an attribute'); return; }
+  if (isNaN(delta)) { edLog('err', 'Enter a number for delta'); return; }
+  for (let i = 0; i < 19; i++) {
+    const newVal = ED.carData[i][attr] + delta;
+    if (newVal < 0 || newVal > 65535) {
+      edLog('err', `${CAR_NAMES[i]} → ${attr} would be ${newVal} (out of range 0–65535). Aborted.`);
+      return;
+    }
+    ED.carData[i][attr] = newVal;
+    ED.modified.add(`${i}_${attr}`);
+  }
+  edLog('ok', `Batch ±${delta} on [${attr}] applied to all 19 cars`);
+  edRenderTable();
+}
+
+// ── Save ──
+function edSave() {
+  if (!ED.plainData || !ED.carData.length) return;
+  const out  = edApplyToBytes(ED.plainData, ED.carData);
+  const name = ED.srcFileName.replace(/\.(dat)$/i, '_edited.dat') || 'characterdata_edited.dat';
+  edDownload(out, name);
+  ED.plainData = out;
+  ED.modified.clear();
+  edLog('ok', `✓ Saved decrypted: ${name}  (${fmtBytes(out.length)})`);
+  edRenderTable();
+}
+
+// ── Save & Encrypt ──
+function edSaveEncrypted() {
+  if (!ED.plainData || !ED.carData.length) return;
+  const plain = edApplyToBytes(ED.plainData, ED.carData);
+  const enc   = compress(plain);  // already appends iXFS checksum
+  const name  = ED.srcFileName.replace(/_decrypted/i,'').replace(/\.(dat)$/i,'_encrypted.dat') || 'characterdata_encrypted.dat';
+  edDownload(enc, name);
+  ED.plainData = plain;
+  ED.modified.clear();
+  const ck = (plain.reduce((a,b)=>a+b,0x4D)) & 0xFF;
+  edLog('ok', `✓ Encrypted: ${name}  (${fmtBytes(enc.length)})  checksum=0x${ck.toString(16).toUpperCase().padStart(2,'0')}`);
+  edRenderTable();
+}
+
+function edDownload(bytes, filename) {
+  const blob = new Blob([bytes], {type:'application/octet-stream'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+</script>
+</body>
+</html>
