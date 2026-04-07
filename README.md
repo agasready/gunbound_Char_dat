@@ -1,4 +1,4 @@
-# Gunbound Characterdata.dat EDITOR
+# Gunbound WC Season1 Characterdata.dat EDITOR
 ---
 
 ## Features
